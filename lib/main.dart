@@ -5,13 +5,13 @@ import 'screens/admin/admin_workout_diet_plan.dart';
 import 'screens/user/user_login.dart';
 import 'screens/user/user_register.dart';
 import 'screens/user/user_dashboard.dart';
-import 'screens/user/profile_management.dart';
-import 'screens/user/activity_tracking.dart';
+
 import 'screens/user/progress_monitoring.dart';
 import 'screens/user/goal_setting.dart';
 import 'screens/user/workout_recommendations.dart';
 import 'screens/user_or_admin.dart';  // استيراد شاشة اختيار الدور
-
+import 'screens/user/user_profile_screen.dart';
+import 'screens/user/user_activity_tracking_screen.dart';
 void main() {
   runApp(FitnessApp());
 }
@@ -32,8 +32,8 @@ class FitnessApp extends StatelessWidget {
         '/user/login': (context) => UserLoginScreen(),
         '/user/register': (context) => UserRegisterScreen(),
         '/user/dashboard': (context) => UserDashboard(),
-        '/user/profile': (context) => ProfileManagement(),
-        '/user/activity': (context) => ActivityTracking(),
+        '/user/profile': (context) => ProfileScreen(),
+        '/user/activity': (context) => ActivityTrackingScreen(),
         '/user/progress': (context) => ProgressMonitoring(),
         '/user/goals': (context) => GoalSetting(),
         '/user/workouts': (context) => WorkoutRecommendations(),

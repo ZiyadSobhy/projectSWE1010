@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'user_register.dart';
+import 'user_home_screen.dart'; // استيراد شاشة الصفحة الرئيسية
 
 class UserLoginScreen extends StatefulWidget {
   @override
@@ -14,9 +15,36 @@ class _UserLoginScreenState extends State<UserLoginScreen> {
     String email = _emailController.text;
     String password = _passwordController.text;
 
-    print('User Login');
-    print('Email: $email');
-    print('Password: $password');
+    if (email.isNotEmpty && password.isNotEmpty) {
+      print('User Login');
+      print('Email: $email');
+      print('Password: $password');
+
+      // الانتقال إلى الشاشة الرئيسية بعد تسجيل الدخول
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => UserHomeScreen(email: email)),
+      );
+    } else {
+      // إظهار رسالة تحذير في حالة وجود حقول فارغة
+      showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: Text('Error'),
+            content: Text('Please fill in all fields'),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                child: Text('OK'),
+              ),
+            ],
+          );
+        },
+      );
+    }
   }
 
   @override

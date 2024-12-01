@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'user_home_screen.dart'; // تأكد من وجود ملف user_home_screen.dart
 
 class UserRegisterScreen extends StatefulWidget {
   @override
@@ -16,9 +17,14 @@ class _UserRegisterScreenState extends State<UserRegisterScreen> {
       String email = _emailController.text;
       String password = _passwordController.text;
 
-      // تسجيل المستخدم
+      // منطق تسجيل المستخدم (يمكنك تخزين البيانات في قاعدة بيانات هنا إذا أردت)
       print('User registered with Email: $email');
-      // أضف منطق التسجيل هنا
+
+      // التنقل إلى شاشة المستخدم الرئيسية
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => UserHomeScreen(email: email)),
+      );
     }
   }
 

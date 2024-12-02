@@ -35,26 +35,49 @@ class _AdminWorkoutDietPlanState extends State<AdminWorkoutDietPlan> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Workout & Diet Plans'),
+        backgroundColor: Colors.teal,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            Text(
+              'Create and Manage Plans',
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Colors.teal,
+              ),
+            ),
+            SizedBox(height: 10),
+            Text(
+              'Add tasks to organize your plans effectively.',
+              style: TextStyle(fontSize: 16, color: Colors.grey[700]),
+            ),
+            SizedBox(height: 20),
             Row(
               children: [
                 Expanded(
                   child: TextField(
                     controller: _taskController,
                     decoration: InputDecoration(
-                      labelText: 'Add a new task',
-                      border: OutlineInputBorder(),
+                      labelText: 'Enter a task',
+                      hintText: 'e.g., Morning Workout',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
                     ),
                   ),
                 ),
                 SizedBox(width: 10),
-                ElevatedButton(
+                ElevatedButton.icon(
                   onPressed: _addTask,
-                  child: Text('Add'),
+                  icon: Icon(Icons.add),
+                  label: Text('Add'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.teal,
+                  ),
                 ),
               ],
             ),
@@ -62,17 +85,44 @@ class _AdminWorkoutDietPlanState extends State<AdminWorkoutDietPlan> {
             Expanded(
               child: _tasks.isEmpty
                   ? Center(
-                child: Text(
-                  'No tasks added yet!',
-                  style: TextStyle(fontSize: 16, color: Colors.grey),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.task_alt_outlined,
+                      size: 50,
+                      color: Colors.grey,
+                    ),
+                    SizedBox(height: 10),
+                    Text(
+                      'No tasks added yet!',
+                      style:
+                      TextStyle(fontSize: 16, color: Colors.grey[600]),
+                    ),
+                  ],
                 ),
               )
                   : ListView.builder(
                 itemCount: _tasks.length,
                 itemBuilder: (context, index) {
                   return Card(
+                    elevation: 3,
+                    margin: EdgeInsets.symmetric(vertical: 8),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
                     child: ListTile(
-                      title: Text(_tasks[index]),
+                      leading: CircleAvatar(
+                        backgroundColor: Colors.teal,
+                        child: Icon(
+                          Icons.check,
+                          color: Colors.white,
+                        ),
+                      ),
+                      title: Text(
+                        _tasks[index],
+                        style: TextStyle(fontSize: 16),
+                      ),
                       trailing: IconButton(
                         icon: Icon(Icons.delete, color: Colors.red),
                         onPressed: () => _deleteTask(index),

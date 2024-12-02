@@ -8,7 +8,7 @@ dependencies:
   flutter:
     sdk: flutter
   provider: ^6.0.5
-  shared_preferences: ^2.1.0
+  shared_preferences: ^2.1.0   # تأكد من أن النسخة هنا محدثة
   http: ^0.15.0
 
 dev_dependencies:

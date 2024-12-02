@@ -12,6 +12,7 @@ import 'screens/user/workout_recommendations.dart';
 import 'screens/user_or_admin.dart';  // استيراد شاشة اختيار الدور
 import 'screens/user/user_profile_screen.dart';
 import 'screens/user/user_activity_tracking_screen.dart';
+
 void main() {
   runApp(FitnessApp());
 }
@@ -30,7 +31,12 @@ class FitnessApp extends StatelessWidget {
       routes: {
         '/': (context) => UserOrAdminScreen(),  // شاشة اختيار الدور
         '/user/login': (context) => UserLoginScreen(),
-        '/user/register': (context) => UserRegisterScreen(),
+        '/user/register': (context) => UserRegisterScreen(
+            onUserAdded: (String name) {
+              // هنا يمكنك تنفيذ أي منطق عند إضافة المستخدم
+              print('User added: $name');
+            }
+        ),
         '/user/dashboard': (context) => UserDashboard(),
         '/user/profile': (context) => ProfileScreen(),
         '/user/activity': (context) => ActivityTrackingScreen(),

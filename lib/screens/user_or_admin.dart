@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'admin/admin_login.dart';
-import 'user/user_login.dart';
 
 class UserOrAdminScreen extends StatelessWidget {
   @override
@@ -8,27 +6,61 @@ class UserOrAdminScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text('Select Role'),
+        backgroundColor: Colors.blueAccent,
       ),
-      body: Center(
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
-            Text('Please select your role'),
-            SizedBox(height: 20),
-            ElevatedButton(
+            // عنوان أعلى الصفحة
+            Text(
+              'Welcome! Please select your role',
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                color: Colors.blueAccent,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            SizedBox(height: 40),
+            // زر المستخدم
+            ElevatedButton.icon(
               onPressed: () {
-                // التوجيه إلى صفحة تسجيل الدخول للمستخدم
                 Navigator.pushNamed(context, '/user/login');
               },
-              child: Text('I am a User'),
+              icon: Icon(Icons.person, size: 24),
+              label: Text(
+                'I am a User',
+                style: TextStyle(fontSize: 18),
+              ),
+              style: ElevatedButton.styleFrom(
+                padding: EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                backgroundColor: Colors.blue,
+              ),
             ),
             SizedBox(height: 20),
-            ElevatedButton(
+            // زر الإداري
+            ElevatedButton.icon(
               onPressed: () {
-                // التوجيه إلى صفحة تسجيل الدخول للإداري
                 Navigator.pushNamed(context, '/admin/login');
               },
-              child: Text('I am an Admin'),
+              icon: Icon(Icons.admin_panel_settings, size: 24),
+              label: Text(
+                'I am an Admin',
+                style: TextStyle(fontSize: 18),
+              ),
+              style: ElevatedButton.styleFrom(
+                padding: EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                backgroundColor: Colors.deepOrange,
+              ),
             ),
           ],
         ),

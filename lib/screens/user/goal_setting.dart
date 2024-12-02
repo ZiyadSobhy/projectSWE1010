@@ -39,51 +39,78 @@ class _GoalSettingState extends State<GoalSetting> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Set Your Goals'),
+        backgroundColor: Colors.blueAccent, // Use backgroundColor instead of primary
+        centerTitle: true,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        child: ListView(
           children: [
             Text(
               'Set your fitness goals:',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: 20),
-            TextField(
-              controller: _caloriesController,
-              keyboardType: TextInputType.number,
-              decoration: InputDecoration(
-                labelText: 'Calories Burned',
-                border: OutlineInputBorder(),
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                color: Colors.blueAccent,
               ),
             ),
             SizedBox(height: 20),
-            TextField(
-              controller: _durationController,
-              keyboardType: TextInputType.number,
-              decoration: InputDecoration(
-                labelText: 'Workout Duration (minutes)',
-                border: OutlineInputBorder(),
-              ),
+            _buildGoalTextField(
+              _caloriesController,
+              'Calories Burned',
+              Icons.local_fire_department,
             ),
             SizedBox(height: 20),
-            TextField(
-              controller: _stepsController,
-              keyboardType: TextInputType.number,
-              decoration: InputDecoration(
-                labelText: 'Number of Steps',
-                border: OutlineInputBorder(),
-              ),
+            _buildGoalTextField(
+              _durationController,
+              'Workout Duration (minutes)',
+              Icons.timer,
+              TextInputType.number,
             ),
             SizedBox(height: 20),
+            _buildGoalTextField(
+              _stepsController,
+              'Number of Steps',
+              Icons.directions_walk,
+              TextInputType.number,
+            ),
+            SizedBox(height: 40),
             Center(
               child: ElevatedButton(
                 onPressed: _saveGoals,
                 child: Text('Save Goals'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blueAccent, // Use backgroundColor here
+                  padding: EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  textStyle: TextStyle(fontSize: 18),
+                ),
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildGoalTextField(
+      TextEditingController controller, String label, IconData icon,
+      [TextInputType keyboardType = TextInputType.text]) {
+    return TextField(
+      controller: controller,
+      keyboardType: keyboardType,
+      decoration: InputDecoration(
+        labelText: label,
+        prefixIcon: Icon(icon, color: Colors.blueAccent),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: Colors.blueAccent),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: Colors.blueAccent, width: 2),
         ),
       ),
     );

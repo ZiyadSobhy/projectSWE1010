@@ -27,31 +27,89 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Manage Profile'),
+        backgroundColor: Colors.blueAccent,
+        elevation: 0,
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
+      body: SingleChildScrollView(
+        padding: EdgeInsets.symmetric(horizontal: 20, vertical: 40),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            Text(
+              'Profile Information',
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Colors.blueAccent,
+              ),
+            ),
+            SizedBox(height: 20),
+
+            // Name field
             TextField(
               controller: _nameController,
-              decoration: InputDecoration(labelText: 'Name'),
+              decoration: InputDecoration(
+                labelText: 'Name',
+                labelStyle: TextStyle(color: Colors.blueAccent),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: Colors.blueAccent),
+                ),
+                prefixIcon: Icon(Icons.person, color: Colors.blueAccent),
+              ),
             ),
+            SizedBox(height: 20),
+
+            // Age field
             TextField(
               controller: _ageController,
               keyboardType: TextInputType.number,
-              decoration: InputDecoration(labelText: 'Age'),
+              decoration: InputDecoration(
+                labelText: 'Age',
+                labelStyle: TextStyle(color: Colors.blueAccent),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: Colors.blueAccent),
+                ),
+                prefixIcon: Icon(Icons.calendar_today, color: Colors.blueAccent),
+              ),
             ),
+            SizedBox(height: 20),
+
+            // Weight field
             TextField(
               controller: _weightController,
               keyboardType: TextInputType.number,
-              decoration: InputDecoration(labelText: 'Weight (kg)'),
+              decoration: InputDecoration(
+                labelText: 'Weight (kg)',
+                labelStyle: TextStyle(color: Colors.blueAccent),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: Colors.blueAccent),
+                ),
+                prefixIcon: Icon(Icons.monitor_weight, color: Colors.blueAccent),
+              ),
             ),
+            SizedBox(height: 20),
+
+            // Height field
             TextField(
               controller: _heightController,
               keyboardType: TextInputType.number,
-              decoration: InputDecoration(labelText: 'Height (cm)'),
+              decoration: InputDecoration(
+                labelText: 'Height (cm)',
+                labelStyle: TextStyle(color: Colors.blueAccent),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: Colors.blueAccent),
+                ),
+                prefixIcon: Icon(Icons.height, color: Colors.blueAccent),
+              ),
             ),
-            DropdownButton<String>(
+            SizedBox(height: 20),
+
+            // Gender dropdown
+            DropdownButtonFormField<String>(
               value: _gender,
               onChanged: (value) {
                 setState(() {
@@ -61,14 +119,39 @@ class _ProfileScreenState extends State<ProfileScreen> {
               items: ['Male', 'Female']
                   .map((gender) => DropdownMenuItem(
                 value: gender,
-                child: Text(gender),
+                child: Text(
+                  gender,
+                  style: TextStyle(color: Colors.blueAccent),
+                ),
               ))
                   .toList(),
+              decoration: InputDecoration(
+                labelText: 'Gender',
+                labelStyle: TextStyle(color: Colors.blueAccent),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: Colors.blueAccent),
+                ),
+                prefixIcon: Icon(Icons.transgender, color: Colors.blueAccent),
+              ),
             ),
-            SizedBox(height: 20),
+            SizedBox(height: 30),
+
+            // Save Button
             ElevatedButton(
               onPressed: _saveProfile,
-              child: Text('Save Profile'),
+              child: Text(
+                'Save Profile',
+                style: TextStyle(fontSize: 16),
+              ),
+              style: ElevatedButton.styleFrom(
+                padding: EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                backgroundColor: Colors.blueAccent, // Corrected parameter
+                foregroundColor: Colors.white, // Corrected to foregroundColor
+              ),
             ),
           ],
         ),

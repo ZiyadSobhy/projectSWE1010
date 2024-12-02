@@ -14,59 +14,91 @@ class UserHomeScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text('Welcome, $email'),
+        backgroundColor: Colors.blueAccent, // اختيار اللون المناسب
+        elevation: 4,
       ),
-      body: ListView(
-        padding: EdgeInsets.all(16.0),
-        children: [
-          ListTile(
-            leading: Icon(Icons.person),
-            title: Text('Profile Management'),
-            subtitle: Text('Edit your profile and set your fitness goals.'),
-            onTap: () {
-              // التنقل إلى صفحة إدارة الملف الشخصي
-              Navigator.push(
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: ListView(
+          children: [
+            _buildCard(
+              context,
+              Icons.person,
+              'Profile Management',
+              'Edit your profile and set your fitness goals.',
+                  () => Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => ProfileScreen()),
-              );
-            },
-          ),
-          ListTile(
-            leading: Icon(Icons.directions_run),
-            title: Text('Activity Tracking'),
-            subtitle: Text('Log your fitness activities.'),
-            onTap: () {
-              // التنقل إلى صفحة تتبع النشاط
-              Navigator.push(
+              ),
+            ),
+            _buildCard(
+              context,
+              Icons.directions_run,
+              'Activity Tracking',
+              'Log your fitness activities.',
+                  () => Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => ActivityTrackingScreen()),
-              );
-            },
-          ),
-          ListTile(
-            leading: Icon(Icons.bar_chart),
-            title: Text('Progress Monitoring'),
-            subtitle: Text('View your progress over time.'),
-            onTap: () {
-              // التنقل إلى صفحة مراقبة التقدم
-              Navigator.push(
+              ),
+            ),
+            _buildCard(
+              context,
+              Icons.bar_chart,
+              'Progress Monitoring',
+              'View your progress over time.',
+                  () => Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => ProgressMonitoring()),
-              );
-            },
-          ),
-          ListTile(
-            leading: Icon(Icons.flag),
-            title: Text('Goal Setting'),
-            subtitle: Text('Set and track your fitness goals.'),
-            onTap: () {
-              // التنقل إلى صفحة تحديد الأهداف
-              Navigator.push(
+              ),
+            ),
+            _buildCard(
+              context,
+              Icons.flag,
+              'Goal Setting',
+              'Set and track your fitness goals.',
+                  () => Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => GoalSetting()),
-              );
-            },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // دالة لبناء كل بطاقة بشكل موحد
+  Widget _buildCard(BuildContext context, IconData icon, String title, String subtitle, VoidCallback onTap) {
+    return Card(
+      margin: EdgeInsets.symmetric(vertical: 8.0),
+      elevation: 5,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10), // إضافة حواف دائرية للبطاقة
+      ),
+      child: ListTile(
+        contentPadding: EdgeInsets.symmetric(vertical: 12.0, horizontal: 16.0),
+        leading: Icon(
+          icon,
+          size: 32.0,
+          color: Colors.blueAccent, // تغيير لون الأيقونة
+        ),
+        title: Text(
+          title,
+          style: TextStyle(
+            fontSize: 18.0,
+            fontWeight: FontWeight.bold,
+            color: Colors.black,
           ),
-        ],
+        ),
+        subtitle: Text(
+          subtitle,
+          style: TextStyle(
+            color: Colors.grey[600],
+            fontSize: 14.0,
+          ),
+        ),
+        onTap: onTap,
+        tileColor: Colors.white, // تغيير خلفية العنصر عند المرور عليه
       ),
     );
   }

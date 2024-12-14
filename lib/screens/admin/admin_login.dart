@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'admin_register.dart';
-import 'admin_dashboard.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'admin_dashboard.dart';  // تأكد من استيراد شاشة لوحة التحكم
+import 'admin_register.dart';  // تأكد من استيراد شاشة التسجيل كإدمن
 
 class AdminLoginScreen extends StatefulWidget {
   @override
@@ -11,23 +12,53 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
 
-  void _login() {
-    String email = _emailController.text;
-    String password = _passwordController.text;
+  // دالة لتسجيل دخول الأدمن باستخدام Firebase
+  Future<void> _login() async {
+    String email = _emailController.text.trim();
+    String password = _passwordController.text.trim();
 
     if (email.isNotEmpty && password.isNotEmpty) {
-      // تسجيل دخول الإدمن
-      print('Admin Login');
-      print('Email: $email');
-      print('Password: $password');
+      try {
+        // محاولة تسجيل الدخول باستخدام Firebase
+        UserCredential userCredential = await FirebaseAuth.instance.signInWithEmailAndPassword(
+          email: email,
+          password: password,
+        );
 
-      // التوجيه إلى لوحة التحكم
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => AdminDashboard()),
-      );
+        // في حالة نجاح تسجيل الدخول، التوجيه إلى لوحة التحكم
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => AdminDashboard()),
+        );
+      } on FirebaseAuthException catch (e) {
+        String message = 'Login failed';
+        if (e.code == 'user-not-found') {
+          message = 'No user found for that email';
+        } else if (e.code == 'wrong-password') {
+          message = 'Wrong password provided for that user';
+        }
+
+        // عرض رسالة الخطأ
+        showDialog(
+          context: context,
+          builder: (context) {
+            return AlertDialog(
+              title: Text('Error'),
+              content: Text(message),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  child: Text('OK'),
+                ),
+              ],
+            );
+          },
+        );
+      }
     } else {
-      // عرض رسالة إذا كانت الحقول فارغة
+      // إذا كانت الحقول فارغة، عرض رسالة تحذير
       showDialog(
         context: context,
         builder: (context) {

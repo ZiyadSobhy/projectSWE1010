@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'admin_dashboard.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'admin_dashboard.dart'; // تأكد من استيراد شاشة لوحة تحكم الإدمن
 
 class AdminRegisterScreen extends StatefulWidget {
   @override
@@ -12,20 +13,42 @@ class _AdminRegisterScreenState extends State<AdminRegisterScreen> {
   final _codeController = TextEditingController();
   final String adminCode = "admin12345"; // الكود الثابت
 
-  void _register() {
-    String email = _emailController.text;
-    String password = _passwordController.text;
-    String code = _codeController.text;
+  // دالة لتسجيل الإدمن باستخدام Firebase
+  Future<void> _register() async {
+    String email = _emailController.text.trim();
+    String password = _passwordController.text.trim();
+    String code = _codeController.text.trim();
 
     if (code == adminCode) {
-      print('Admin registered successfully!');
-      print('Email: $email');
+      try {
+        // محاولة إنشاء حساب باستخدام Firebase
+        UserCredential userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
+          email: email,
+          password: password,
+        );
 
-      // التوجيه إلى شاشة لوحة تحكم الإدمن
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => AdminDashboard()),
-      );
+        // في حالة نجاح التسجيل، التوجيه إلى لوحة التحكم
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => AdminDashboard()),
+        );
+      } on FirebaseAuthException catch (e) {
+        String message = 'Registration failed';
+        if (e.code == 'email-already-in-use') {
+          message = 'The email address is already in use by another account';
+        }
+
+        // عرض رسالة الخطأ
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              message,
+              style: TextStyle(color: Colors.white),
+            ),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     } else {
       // عرض رسالة في حالة الكود غير صحيح
       ScaffoldMessenger.of(context).showSnackBar(

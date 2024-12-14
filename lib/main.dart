@@ -1,19 +1,29 @@
 import 'package:flutter/material.dart';
-import 'screens/admin/admin_login.dart';
-import 'screens/admin/admin_dashboard.dart';
-import 'screens/admin/admin_workout_diet_plan.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
+
+// شاشات المستخدم
 import 'screens/user/user_login.dart';
 import 'screens/user/user_register.dart';
 import 'screens/user/user_dashboard.dart';
-
 import 'screens/user/progress_monitoring.dart';
 import 'screens/user/goal_setting.dart';
-
-import 'screens/user_or_admin.dart';  // استيراد شاشة اختيار الدور
 import 'screens/user/user_profile_screen.dart';
 import 'screens/user/user_activity_tracking_screen.dart';
 
-void main() {
+// شاشات الإداري
+import 'screens/admin/admin_login.dart';
+import 'screens/admin/admin_dashboard.dart';
+import 'screens/admin/admin_workout_diet_plan.dart';
+
+// شاشة اختيار الدور بين المستخدم والإداري
+import 'screens/user_or_admin.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   runApp(FitnessApp());
 }
 
@@ -27,15 +37,15 @@ class FitnessApp extends StatelessWidget {
         primarySwatch: Colors.blue,
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      initialRoute: '/',  // هنا يتم تحديد شاشة البداية
+      initialRoute: '/',  // تحديد شاشة البداية
       routes: {
-        '/': (context) => UserOrAdminScreen(),  // شاشة اختيار الدور
+        '/': (context) => UserOrAdminScreen(),
         '/user/login': (context) => UserLoginScreen(),
         '/user/register': (context) => UserRegisterScreen(
-            onUserAdded: (String name) {
-              // هنا يمكنك تنفيذ أي منطق عند إضافة المستخدم
-              print('User added: $name');
-            }
+          onUserAdded: (String name) {
+            // تنفيذ منطق عند إضافة المستخدم
+            print('User added: $name');
+          },
         ),
         '/user/dashboard': (context) => UserDashboard(),
         '/user/profile': (context) => ProfileScreen(),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'user_home_screen.dart';  // تأكد من استيراد صفحة الصفحة الرئيسية للمستخدم
 import 'user_register.dart';  // تأكد من استيراد شاشة التسجيل
-import 'user_home_screen.dart';  // تأكد من استيراد شاشة الصفحة الرئيسية للمستخدم
 
 class UserLoginScreen extends StatefulWidget {
   @override
@@ -11,16 +12,53 @@ class _UserLoginScreenState extends State<UserLoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
 
-  void _login() {
-    String email = _emailController.text;
-    String password = _passwordController.text;
+  // دالة لتسجيل الدخول باستخدام Firebase
+  Future<void> _login() async {
+    String email = _emailController.text.trim();
+    String password = _passwordController.text.trim();
 
     if (email.isNotEmpty && password.isNotEmpty) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => UserHomeScreen(email: email)), // التوجيه إلى UserHomeScreen
-      );
+      try {
+        // محاولة تسجيل الدخول باستخدام Firebase
+        UserCredential userCredential = await FirebaseAuth.instance.signInWithEmailAndPassword(
+          email: email,
+          password: password,
+        );
+
+        // في حالة نجاح تسجيل الدخول، التوجيه إلى الصفحة الرئيسية
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => UserHomeScreen(email: email)),
+        );
+      } on FirebaseAuthException catch (e) {
+        String message = 'Login failed';
+        if (e.code == 'user-not-found') {
+          message = 'No user found for that email';
+        } else if (e.code == 'wrong-password') {
+          message = 'Wrong password provided for that user';
+        }
+
+        // عرض رسالة الخطأ
+        showDialog(
+          context: context,
+          builder: (context) {
+            return AlertDialog(
+              title: Text('Error'),
+              content: Text(message),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  child: Text('OK'),
+                ),
+              ],
+            );
+          },
+        );
+      }
     } else {
+      // إذا كانت الحقول فارغة، عرض رسالة تحذير
       showDialog(
         context: context,
         builder: (context) {
@@ -133,7 +171,7 @@ class _UserLoginScreenState extends State<UserLoginScreen> {
                   ),
                   TextButton(
                     onPressed: () {
-                      // تمرير الدالة onUserAdded عند التوجيه إلى صفحة التسجيل
+                      // الانتقال إلى صفحة التسجيل
                       Navigator.push(
                         context,
                         MaterialPageRoute(

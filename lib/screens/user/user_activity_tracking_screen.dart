@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 class ActivityTrackingScreen extends StatefulWidget {
@@ -12,25 +13,38 @@ class _ActivityTrackingScreenState extends State<ActivityTrackingScreen> {
 
   final List<Map<String, String>> _activities = [];
 
-  void _addActivity() {
-    setState(() {
-      if (_activityController.text.isNotEmpty &&
-          _durationController.text.isNotEmpty &&
-          _caloriesController.text.isNotEmpty) {
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  void _addActivity() async {
+    if (_activityController.text.isNotEmpty &&
+        _durationController.text.isNotEmpty &&
+        _caloriesController.text.isNotEmpty) {
+      // إضافة النشاط إلى Firestore
+      await _firestore.collection('activities').add({
+        'activity': _activityController.text,
+        'duration': _durationController.text,
+        'calories': _caloriesController.text,
+        'timestamp': FieldValue.serverTimestamp(),  // الوقت الحالي
+      });
+
+      // تحديث الواجهة بعد إضافة النشاط
+      setState(() {
         _activities.add({
           'activity': _activityController.text,
           'duration': _durationController.text,
           'calories': _caloriesController.text,
         });
+
+        // مسح البيانات بعد إضافة النشاط
         _activityController.clear();
         _durationController.clear();
         _caloriesController.clear();
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Please fill in all fields')),
-        );
-      }
-    });
+      });
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Please fill in all fields')),
+      );
+    }
   }
 
   @override
@@ -74,28 +88,45 @@ class _ActivityTrackingScreenState extends State<ActivityTrackingScreen> {
             ),
             SizedBox(height: 20),
             Expanded(
-              child: ListView.builder(
-                itemCount: _activities.length,
-                itemBuilder: (context, index) {
-                  return Card(
-                    margin: EdgeInsets.symmetric(vertical: 8),
-                    elevation: 4,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: ListTile(
-                      contentPadding: EdgeInsets.all(16),
-                      title: Text(
-                        _activities[index]['activity']!,
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                          color: Colors.blueAccent,
+              child: StreamBuilder<QuerySnapshot>(
+                stream: _firestore.collection('activities').orderBy('timestamp', descending: true).snapshots(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return Center(child: CircularProgressIndicator());
+                  }
+
+                  if (snapshot.hasError) {
+                    return Center(child: Text('Something went wrong!'));
+                  }
+
+                  final activities = snapshot.data?.docs ?? [];
+
+                  return ListView.builder(
+                    itemCount: activities.length,
+                    itemBuilder: (context, index) {
+                      var activity = activities[index].data() as Map<String, dynamic>;
+                      return Card(
+                        margin: EdgeInsets.symmetric(vertical: 8),
+                        elevation: 4,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
                         ),
-                      ),
-                      subtitle: Text(
-                          'Duration: ${_activities[index]['duration']} minutes\nCalories: ${_activities[index]['calories']} kcal'),
-                    ),
+                        child: ListTile(
+                          contentPadding: EdgeInsets.all(16),
+                          title: Text(
+                            activity['activity'],
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                              color: Colors.blueAccent,
+                            ),
+                          ),
+                          subtitle: Text(
+                            'Duration: ${activity['duration']} minutes\nCalories: ${activity['calories']} kcal',
+                          ),
+                        ),
+                      );
+                    },
                   );
                 },
               ),

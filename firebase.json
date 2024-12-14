@@ -1,0 +1,29 @@
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "fintenssapp",
+          "appId": "1:419872830898:android:387999f7cc25f3a6e660ab",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "fintenssapp",
+          "configurations": {
+            "android": "1:419872830898:android:387999f7cc25f3a6e660ab",
+            "ios": "1:419872830898:ios:518dd046412c77eae660ab",
+            "macos": "1:419872830898:ios:518dd046412c77eae660ab",
+            "web": "1:419872830898:web:5a2e040ea3efed63e660ab",
+            "windows": "1:419872830898:web:a1e07b2f40ac6177e660ab"
+          }
+        }
+      }
+    }
+  },
+  "firestore": {
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  }
+}

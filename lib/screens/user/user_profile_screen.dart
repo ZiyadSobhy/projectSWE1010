@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -12,14 +14,54 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final TextEditingController _heightController = TextEditingController();
   String _gender = "Male";
 
-  void _saveProfile() {
-    // هنا يمكننا حفظ البيانات محليًا أو إرسالها إلى قاعدة بيانات
-    print('Profile Saved');
-    print('Name: ${_nameController.text}');
-    print('Age: ${_ageController.text}');
-    print('Weight: ${_weightController.text}');
-    print('Height: ${_heightController.text}');
-    print('Gender: $_gender');
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  User? _user;
+
+  @override
+  void initState() {
+    super.initState();
+    // الحصول على المستخدم الحالي
+    _user = _auth.currentUser;
+    if (_user != null) {
+      _loadUserProfile();
+    }
+  }
+
+  void _loadUserProfile() async {
+    // تحميل بيانات المستخدم من Firestore إذا كانت موجودة
+    DocumentSnapshot doc = await _firestore.collection('users').doc(_user!.uid).get();
+    if (doc.exists) {
+      var data = doc.data() as Map<String, dynamic>;
+      _nameController.text = data['name'] ?? '';
+      _ageController.text = data['age'] ?? '';
+      _weightController.text = data['weight'] ?? '';
+      _heightController.text = data['height'] ?? '';
+      _gender = data['gender'] ?? 'Male';
+      setState(() {});
+    }
+  }
+
+  void _saveProfile() async {
+    // حفظ بيانات المستخدم في Firestore
+    if (_user != null) {
+      await _firestore.collection('users').doc(_user!.uid).set({
+        'name': _nameController.text,
+        'age': _ageController.text,
+        'weight': _weightController.text,
+        'height': _heightController.text,
+        'gender': _gender,
+      }, SetOptions(merge: true)); // يستخدم "merge" لكي لا يتم مسح البيانات القديمة
+
+      // عرض رسالة بعد حفظ البيانات
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Profile Saved'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    }
   }
 
   @override
@@ -149,8 +191,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
-                backgroundColor: Colors.blueAccent, // Corrected parameter
-                foregroundColor: Colors.white, // Corrected to foregroundColor
+                backgroundColor: Colors.blueAccent,
+                foregroundColor: Colors.white,
               ),
             ),
           ],

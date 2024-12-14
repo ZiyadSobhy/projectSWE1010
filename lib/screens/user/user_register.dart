@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'user_home_screen.dart';
 
 class UserRegisterScreen extends StatefulWidget {
@@ -15,6 +16,7 @@ class _UserRegisterScreenState extends State<UserRegisterScreen> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _confirmPasswordController = TextEditingController();
 
   // دالة لحفظ البيانات في متغيرات مؤقتة
   void _saveUserData(String name, String email) {
@@ -22,24 +24,46 @@ class _UserRegisterScreenState extends State<UserRegisterScreen> {
   }
 
   // دالة للتسجيل
-  void _register() {
+  Future<void> _register() async {
     if (_formKey.currentState?.validate() ?? false) {
       String name = _nameController.text.trim();
       String email = _emailController.text.trim();
       String password = _passwordController.text.trim();
+      String confirmPassword = _confirmPasswordController.text.trim();
 
-      // حفظ البيانات في المتغيرات المؤقتة
-      _saveUserData(name, email);
+      if (password != confirmPassword) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Passwords do not match!')),
+        );
+        return;
+      }
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('$name has been registered successfully!')),
-      );
+      try {
+        // تسجيل المستخدم باستخدام Firebase Auth
+        UserCredential userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
+          email: email,
+          password: password,
+        );
 
-      // بعد التسجيل الناجح، التوجه إلى صفحة المستخدم الرئيسية
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => UserHomeScreen(email: email)), // تمرير البريد الإلكتروني
-      );
+        // حفظ البيانات في المتغيرات المؤقتة
+        _saveUserData(name, email);
+
+        // إظهار رسالة تأكيد
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('$name has been registered successfully!')),
+        );
+
+        // بعد التسجيل الناجح، التوجه إلى صفحة المستخدم الرئيسية
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => UserHomeScreen(email: email)), // تمرير البريد الإلكتروني
+        );
+      } on FirebaseAuthException catch (e) {
+        // التعامل مع الأخطاء مثل البريد الإلكتروني المكرر أو كلمة المرور الضعيفة
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.message ?? 'An error occurred')),
+        );
+      }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Please fill in all fields')),
@@ -103,6 +127,22 @@ class _UserRegisterScreenState extends State<UserRegisterScreen> {
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Please enter your password';
+                  }
+                  return null;
+                },
+              ),
+              SizedBox(height: 20),
+              TextFormField(
+                controller: _confirmPasswordController,
+                obscureText: true,
+                decoration: InputDecoration(
+                  labelText: 'Confirm Password',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.lock),
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please confirm your password';
                   }
                   return null;
                 },

@@ -5,7 +5,7 @@ import 'firebase_options.dart';
 // شاشات المستخدم
 import 'screens/user/user_login.dart';
 import 'screens/user/user_register.dart';
-import 'screens/user/user_dashboard.dart';
+
 import 'screens/user/progress_monitoring.dart';
 import 'screens/user/goal_setting.dart';
 import 'screens/user/user_profile_screen.dart';
@@ -47,7 +47,7 @@ class FitnessApp extends StatelessWidget {
             print('User added: $name');
           },
         ),
-        '/user/dashboard': (context) => UserDashboard(),
+
         '/user/profile': (context) => ProfileScreen(),
         '/user/activity': (context) => ActivityTrackingScreen(),
         '/user/progress': (context) => ProgressMonitoring(),

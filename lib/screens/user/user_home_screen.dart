@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import 'user_profile_screen.dart'; // استيراد شاشة إدارة الملف الشخصي
-import 'user_activity_tracking_screen.dart'; // استيراد شاشة تتبع النشاط
-import 'progress_monitoring.dart'; // استيراد شاشة مراقبة التقدم
-import 'goal_setting.dart'; // استيراد شاشة تحديد الأهداف
+import 'user_profile_screen.dart';
+import 'user_activity_tracking_screen.dart';
+import 'progress_monitoring.dart';
+import 'goal_setting.dart';
+import 'workout_recommendations.dart'; // استيراد شاشة التوصيات
 
 class UserHomeScreen extends StatelessWidget {
   final String email;
@@ -14,7 +15,7 @@ class UserHomeScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text('Welcome, $email'),
-        backgroundColor: Colors.blueAccent, // اختيار اللون المناسب
+        backgroundColor: Colors.blueAccent,
         elevation: 4,
       ),
       body: Padding(
@@ -61,26 +62,36 @@ class UserHomeScreen extends StatelessWidget {
                 MaterialPageRoute(builder: (context) => GoalSetting()),
               ),
             ),
+            // البطاقة الجديدة الخاصة بالتوصيات
+            _buildCard(
+              context,
+              Icons.fitness_center,
+              'Workout Recommendations',
+              'Get personalized workout recommendations.',
+                  () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => WorkoutRecommendations()),
+              ),
+            ),
           ],
         ),
       ),
     );
   }
 
-  // دالة لبناء كل بطاقة بشكل موحد
   Widget _buildCard(BuildContext context, IconData icon, String title, String subtitle, VoidCallback onTap) {
     return Card(
       margin: EdgeInsets.symmetric(vertical: 8.0),
       elevation: 5,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(10), // إضافة حواف دائرية للبطاقة
+        borderRadius: BorderRadius.circular(10),
       ),
       child: ListTile(
         contentPadding: EdgeInsets.symmetric(vertical: 12.0, horizontal: 16.0),
         leading: Icon(
           icon,
           size: 32.0,
-          color: Colors.blueAccent, // تغيير لون الأيقونة
+          color: Colors.blueAccent,
         ),
         title: Text(
           title,
@@ -98,7 +109,7 @@ class UserHomeScreen extends StatelessWidget {
           ),
         ),
         onTap: onTap,
-        tileColor: Colors.white, // تغيير خلفية العنصر عند المرور عليه
+        tileColor: Colors.white,
       ),
     );
   }

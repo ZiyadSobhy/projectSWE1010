@@ -14,7 +14,7 @@ class UserOrAdminScreen extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
-            // عنوان أعلى الصفحة
+            // عنوان الصفحة الرئيسي
             Text(
               'Welcome! Please select your role',
               style: TextStyle(
@@ -25,6 +25,7 @@ class UserOrAdminScreen extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
             SizedBox(height: 40),
+
             // زر المستخدم
             ElevatedButton.icon(
               onPressed: () {
@@ -44,6 +45,7 @@ class UserOrAdminScreen extends StatelessWidget {
               ),
             ),
             SizedBox(height: 20),
+
             // زر الإداري
             ElevatedButton.icon(
               onPressed: () {
@@ -60,6 +62,26 @@ class UserOrAdminScreen extends StatelessWidget {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 backgroundColor: Colors.deepOrange,
+              ),
+            ),
+            SizedBox(height: 20),
+
+            // زر المدربين
+            ElevatedButton.icon(
+              onPressed: () {
+                Navigator.pushNamed(context, '/coach/login');
+              },
+              icon: Icon(Icons.fitness_center, size: 24),
+              label: Text(
+                'I am a Coach',
+                style: TextStyle(fontSize: 18),
+              ),
+              style: ElevatedButton.styleFrom(
+                padding: EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                backgroundColor: Colors.green,
               ),
             ),
           ],

@@ -2,10 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 
+// شاشات المدرب
+import 'Coachs/coach_login.dart';
+import 'Coachs/coach_register.dart';
+import 'Coachs/coach_dashboard_screen.dart';
+
 // شاشات المستخدم
 import 'screens/user/user_login.dart';
 import 'screens/user/user_register.dart';
-
 import 'screens/user/progress_monitoring.dart';
 import 'screens/user/goal_setting.dart';
 import 'screens/user/user_profile_screen.dart';
@@ -47,8 +51,7 @@ class FitnessApp extends StatelessWidget {
             print('User added: $name');
           },
         ),
-
-        '/user/profile': (context) => ProfileScreen(),
+        '/user/profile': (context) => UserProfileScreen(),
         '/user/activity': (context) => ActivityTrackingScreen(),
         '/user/progress': (context) => ProgressMonitoring(),
         '/user/goals': (context) => GoalSetting(),
@@ -56,6 +59,11 @@ class FitnessApp extends StatelessWidget {
         '/admin/login': (context) => AdminLoginScreen(),
         '/admin/dashboard': (context) => AdminDashboard(),
         '/admin/plans': (context) => AdminWorkoutDietPlan(),
+
+        '/coach/login': (context) => CoachLoginScreen(),
+        '/coach/register': (context) => CoachRegisterScreen(),
+        '/coach/dashboard': (context) => CoachDashboardScreen(),
+
       },
     );
   }

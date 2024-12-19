@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'admin_dashboard.dart';  // تأكد من استيراد شاشة لوحة التحكم
-import 'admin_register.dart';  // تأكد من استيراد شاشة التسجيل كإدمن
+import 'admin_dashboard.dart'; // تأكد من استيراد شاشة لوحة تحكم الإدمن
+import 'admin_register.dart'; // تأكد من استيراد شاشة التسجيل للإدمن
+import 'package:google_sign_in/google_sign_in.dart';
 
 class AdminLoginScreen extends StatefulWidget {
   @override
@@ -12,7 +13,7 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
 
-  // دالة لتسجيل دخول الأدمن باستخدام Firebase
+  // دالة لتسجيل دخول الإدمن باستخدام Firebase
   Future<void> _login() async {
     String email = _emailController.text.trim();
     String password = _passwordController.text.trim();
@@ -25,10 +26,10 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
           password: password,
         );
 
-        // في حالة نجاح تسجيل الدخول، التوجيه إلى لوحة التحكم
+        // في حالة نجاح تسجيل الدخول، التوجيه إلى لوحة تحكم الإدمن
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => AdminDashboard()),
+          MaterialPageRoute(builder: (context) => AdminDashboard()), // التوجيه إلى لوحة التحكم
         );
       } on FirebaseAuthException catch (e) {
         String message = 'Login failed';
@@ -39,42 +40,59 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
         }
 
         // عرض رسالة الخطأ
-        showDialog(
-          context: context,
-          builder: (context) {
-            return AlertDialog(
-              title: Text('Error'),
-              content: Text(message),
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                  child: Text('OK'),
-                ),
-              ],
-            );
-          },
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              message,
+              style: TextStyle(color: Colors.white),
+            ),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     } else {
       // إذا كانت الحقول فارغة، عرض رسالة تحذير
-      showDialog(
-        context: context,
-        builder: (context) {
-          return AlertDialog(
-            title: Text('Error'),
-            content: Text('Please fill in all fields'),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-                child: Text('OK'),
-              ),
-            ],
-          );
-        },
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Please fill in all fields',
+            style: TextStyle(color: Colors.white),
+          ),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  // دالة لتسجيل الدخول باستخدام Google
+  Future<void> _signInWithGoogle() async {
+    try {
+      final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
+      if (googleUser == null) return; // المستخدم أغلق شاشة تسجيل الدخول
+
+      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+      final credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+
+      UserCredential userCredential = await FirebaseAuth.instance.signInWithCredential(credential);
+
+      // في حالة نجاح تسجيل الدخول، التوجيه إلى لوحة التحكم
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => AdminDashboard()),
+      );
+    } catch (e) {
+      // عرض رسالة خطأ في حالة فشل تسجيل الدخول باستخدام Google
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Google login failed',
+            style: TextStyle(color: Colors.white),
+          ),
+          backgroundColor: Colors.red,
+        ),
       );
     }
   }
@@ -84,7 +102,7 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Admin Login'),
-        backgroundColor: Colors.teal,
+        backgroundColor: Colors.teal, // اللون الأخضر الفاتح
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -92,13 +110,13 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              SizedBox(height: 30),
+              SizedBox(height: 20),
               // أيقونة ترحيب
               Center(
                 child: Icon(
                   Icons.admin_panel_settings,
                   size: 80,
-                  color: Colors.teal,
+                  color: Colors.teal, // اللون الأخضر الفاتح
                 ),
               ),
               SizedBox(height: 20),
@@ -108,13 +126,13 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                 style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
-                  color: Colors.teal,
+                  color: Colors.teal, // اللون الأخضر الفاتح
                 ),
                 textAlign: TextAlign.center,
               ),
               SizedBox(height: 10),
               Text(
-                'Please log in to access your dashboard',
+                'Please login to access your dashboard.',
                 style: TextStyle(fontSize: 16, color: Colors.grey),
                 textAlign: TextAlign.center,
               ),
@@ -156,23 +174,40 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  backgroundColor: Colors.teal,
+                  backgroundColor: Colors.teal, // اللون الأخضر الفاتح
                 ),
               ),
-              SizedBox(height: 20),
-              // رابط تسجيل كإدمن
-              TextButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => AdminRegisterScreen()),
-                  );
-                },
-                child: Text(
-                  'Don\'t have an account? Register as Admin',
-                  style: TextStyle(color: Colors.teal),
+              SizedBox(height: 10),
+              // زر تسجيل الدخول باستخدام Google
+              ElevatedButton.icon(
+                onPressed: _signInWithGoogle,
+                icon: Icon(Icons.login),
+                label: Text('Sign in with Google'),
+                style: ElevatedButton.styleFrom(
+                  padding: EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  backgroundColor: Colors.teal, // اللون الأخضر الفاتح
                 ),
+              ),
+              SizedBox(height: 10),
+              // رابط للتسجيل
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text("Don't have an account?", style: TextStyle(color: Colors.grey)),
+                  TextButton(
+                    onPressed: () {
+                      // التوجيه إلى صفحة التسجيل
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => AdminRegisterScreen()),
+                      );
+                    },
+                    child: Text('Register here'),
+                  ),
+                ],
               ),
             ],
           ),

@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'user_home_screen.dart';  // تأكد من استيراد صفحة الصفحة الرئيسية للمستخدم
-import 'user_register.dart';  // تأكد من استيراد شاشة التسجيل
+import 'package:google_sign_in/google_sign_in.dart';
+import 'user_home_screen.dart';
+import 'user_register.dart';
 
 class UserLoginScreen extends StatefulWidget {
   @override
@@ -12,71 +13,97 @@ class _UserLoginScreenState extends State<UserLoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
 
-  // دالة لتسجيل الدخول باستخدام Firebase
-  Future<void> _login() async {
+  // تسجيل الدخول عبر البريد الإلكتروني وكلمة المرور
+  Future<void> _loginWithEmailPassword() async {
     String email = _emailController.text.trim();
     String password = _passwordController.text.trim();
 
     if (email.isNotEmpty && password.isNotEmpty) {
       try {
-        // محاولة تسجيل الدخول باستخدام Firebase
         UserCredential userCredential = await FirebaseAuth.instance.signInWithEmailAndPassword(
           email: email,
           password: password,
         );
-
-        // في حالة نجاح تسجيل الدخول، التوجيه إلى الصفحة الرئيسية
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => UserHomeScreen(email: email)),
         );
       } on FirebaseAuthException catch (e) {
-        String message = 'Login failed';
-        if (e.code == 'user-not-found') {
-          message = 'No user found for that email';
-        } else if (e.code == 'wrong-password') {
-          message = 'Wrong password provided for that user';
-        }
-
-        // عرض رسالة الخطأ
-        showDialog(
-          context: context,
-          builder: (context) {
-            return AlertDialog(
-              title: Text('Error'),
-              content: Text(message),
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                  child: Text('OK'),
-                ),
-              ],
-            );
-          },
-        );
+        _showErrorDialog(e.message ?? 'Login failed');
       }
     } else {
-      // إذا كانت الحقول فارغة، عرض رسالة تحذير
-      showDialog(
-        context: context,
-        builder: (context) {
-          return AlertDialog(
-            title: Text('Error'),
-            content: Text('Please fill in all fields'),
+      _showErrorDialog('Please fill in all fields');
+    }
+  }
+
+  // تسجيل الدخول باستخدام Google
+  Future<void> _loginWithGoogle() async {
+    try {
+      final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
+      if (googleUser == null) return; // المستخدم أغلق شاشة تسجيل الدخول
+
+      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+      final credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+
+      UserCredential userCredential = await FirebaseAuth.instance.signInWithCredential(credential);
+
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => UserHomeScreen(email: userCredential.user?.email ?? ''),
+        ),
+      );
+    } catch (e) {
+      _showErrorDialog('Google login failed');
+    }
+  }
+
+  // إعادة تعيين كلمة المرور
+  Future<void> _resetPassword() async {
+    String email = _emailController.text.trim();
+
+    if (email.isNotEmpty) {
+      try {
+        await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text('Password Reset'),
+            content: Text('Password reset email sent to $email.'),
             actions: [
               TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                },
+                onPressed: () => Navigator.pop(context),
                 child: Text('OK'),
               ),
             ],
-          );
-        },
-      );
+          ),
+        );
+      } on FirebaseAuthException catch (e) {
+        _showErrorDialog(e.message ?? 'Failed to send reset email');
+      }
+    } else {
+      _showErrorDialog('Please enter your email address');
     }
+  }
+
+  // عرض رسائل الخطأ
+  void _showErrorDialog(String message) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Error'),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('OK'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -94,7 +121,6 @@ class _UserLoginScreenState extends State<UserLoginScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               SizedBox(height: 40),
-              // شعار أو أيقونة أعلى الصفحة
               Center(
                 child: Icon(
                   Icons.lock,
@@ -103,7 +129,6 @@ class _UserLoginScreenState extends State<UserLoginScreen> {
                 ),
               ),
               SizedBox(height: 20),
-              // نص الترحيب
               Text(
                 'Welcome Back!',
                 style: TextStyle(
@@ -113,14 +138,7 @@ class _UserLoginScreenState extends State<UserLoginScreen> {
                 ),
                 textAlign: TextAlign.center,
               ),
-              SizedBox(height: 8),
-              Text(
-                'Login to your account to continue',
-                style: TextStyle(fontSize: 16, color: Colors.grey),
-                textAlign: TextAlign.center,
-              ),
               SizedBox(height: 40),
-              // حقل البريد الإلكتروني
               TextField(
                 controller: _emailController,
                 decoration: InputDecoration(
@@ -132,7 +150,6 @@ class _UserLoginScreenState extends State<UserLoginScreen> {
                 ),
               ),
               SizedBox(height: 20),
-              // حقل كلمة المرور
               TextField(
                 controller: _passwordController,
                 obscureText: true,
@@ -145,13 +162,9 @@ class _UserLoginScreenState extends State<UserLoginScreen> {
                 ),
               ),
               SizedBox(height: 20),
-              // زر تسجيل الدخول
               ElevatedButton(
-                onPressed: _login,
-                child: Text(
-                  'Login',
-                  style: TextStyle(fontSize: 18),
-                ),
+                onPressed: _loginWithEmailPassword,
+                child: Text('Login', style: TextStyle(fontSize: 18)),
                 style: ElevatedButton.styleFrom(
                   padding: EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
@@ -160,25 +173,44 @@ class _UserLoginScreenState extends State<UserLoginScreen> {
                   backgroundColor: Colors.blueAccent,
                 ),
               ),
-              SizedBox(height: 20),
-              // نص للتسجيل الجديد
+              SizedBox(height: 10),
+              ElevatedButton.icon(
+                onPressed: _loginWithGoogle,
+                icon: Icon(Icons.login, color: Colors.white),
+                label: Text('Login with Google', style: TextStyle(fontSize: 18)),
+                style: ElevatedButton.styleFrom(
+                  padding: EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  backgroundColor: Colors.redAccent,
+                ),
+              ),
+              SizedBox(height: 10),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text(
-                    "Don't have an account?",
-                    style: TextStyle(color: Colors.grey),
+                  TextButton(
+                    onPressed: _resetPassword,
+                    child: Text(
+                      'Forgot Password?',
+                      style: TextStyle(color: Colors.blueAccent),
+                    ),
                   ),
+                ],
+              ),
+              SizedBox(height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text("Don't have an account?", style: TextStyle(color: Colors.grey)),
                   TextButton(
                     onPressed: () {
-                      // الانتقال إلى صفحة التسجيل
                       Navigator.push(
                         context,
                         MaterialPageRoute(
                           builder: (context) => UserRegisterScreen(
-                            onUserAdded: (String name) {
-                              // يمكنك إضافة الكود الخاص بإضافة المستخدم هنا
-                            },
+                            onUserAdded: (String name) {},
                           ),
                         ),
                       );

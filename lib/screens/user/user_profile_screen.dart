@@ -1,65 +1,40 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
-class ProfileScreen extends StatefulWidget {
+class UserProfileScreen extends StatefulWidget {
   @override
-  _ProfileScreenState createState() => _ProfileScreenState();
+  _UserProfileScreenState createState() => _UserProfileScreenState();
 }
 
-class _ProfileScreenState extends State<ProfileScreen> {
-  final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _ageController = TextEditingController();
-  final TextEditingController _weightController = TextEditingController();
-  final TextEditingController _heightController = TextEditingController();
-  String _gender = "Male";
-
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-
-  User? _user;
+class _UserProfileScreenState extends State<UserProfileScreen> {
+  final _formKey = GlobalKey<FormState>();
+  final _nameController = TextEditingController();
+  final _ageController = TextEditingController();
+  final _genderController = TextEditingController();
+  final _heightController = TextEditingController();
+  final _weightController = TextEditingController();
 
   @override
-  void initState() {
-    super.initState();
-    // الحصول على المستخدم الحالي
-    _user = _auth.currentUser;
-    if (_user != null) {
-      _loadUserProfile();
-    }
+  void dispose() {
+    _nameController.dispose();
+    _ageController.dispose();
+    _genderController.dispose();
+    _heightController.dispose();
+    _weightController.dispose();
+    super.dispose();
   }
 
-  void _loadUserProfile() async {
-    // تحميل بيانات المستخدم من Firestore إذا كانت موجودة
-    DocumentSnapshot doc = await _firestore.collection('users').doc(_user!.uid).get();
-    if (doc.exists) {
-      var data = doc.data() as Map<String, dynamic>;
-      _nameController.text = data['name'] ?? '';
-      _ageController.text = data['age'] ?? '';
-      _weightController.text = data['weight'] ?? '';
-      _heightController.text = data['height'] ?? '';
-      _gender = data['gender'] ?? 'Male';
-      setState(() {});
-    }
-  }
-
-  void _saveProfile() async {
-    // حفظ بيانات المستخدم في Firestore
-    if (_user != null) {
-      await _firestore.collection('users').doc(_user!.uid).set({
+  Future<void> _saveUserProfile() async {
+    if (_formKey.currentState!.validate()) {
+      await FirebaseFirestore.instance.collection('users').add({
         'name': _nameController.text,
         'age': _ageController.text,
-        'weight': _weightController.text,
+        'gender': _genderController.text,
         'height': _heightController.text,
-        'gender': _gender,
-      }, SetOptions(merge: true)); // يستخدم "merge" لكي لا يتم مسح البيانات القديمة
-
-      // عرض رسالة بعد حفظ البيانات
+        'weight': _weightController.text,
+      });
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Profile Saved'),
-          backgroundColor: Colors.green,
-        ),
+        SnackBar(content: Text('User profile saved successfully!')),
       );
     }
   }
@@ -68,135 +43,60 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Manage Profile'),
-        backgroundColor: Colors.blueAccent,
-        elevation: 0,
+        title: Text('User Profile'),
+        backgroundColor: Colors.green,
       ),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.symmetric(horizontal: 20, vertical: 40),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Profile Information',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: Colors.blueAccent,
-              ),
-            ),
-            SizedBox(height: 20),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Form(
+          key: _formKey,
+          child: ListView(
+            children: [
+              _buildTextField(_nameController, 'Name', Icons.person),
+              _buildTextField(_ageController, 'Age', Icons.cake, TextInputType.number),
+              _buildTextField(_genderController, 'Gender', Icons.wc),
+              _buildTextField(_heightController, 'Height', Icons.height, TextInputType.number),
+              _buildTextField(_weightController, 'Weight', Icons.fitness_center, TextInputType.number),
+              SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: _saveUserProfile,
+                child: Text('Save Profile'),
+                style: ElevatedButton.styleFrom(
 
-            // Name field
-            TextField(
-              controller: _nameController,
-              decoration: InputDecoration(
-                labelText: 'Name',
-                labelStyle: TextStyle(color: Colors.blueAccent),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: Colors.blueAccent),
+                  padding: EdgeInsets.symmetric(horizontal: 50, vertical: 15),
+                  textStyle: TextStyle(fontSize: 18),
                 ),
-                prefixIcon: Icon(Icons.person, color: Colors.blueAccent),
               ),
-            ),
-            SizedBox(height: 20),
-
-            // Age field
-            TextField(
-              controller: _ageController,
-              keyboardType: TextInputType.number,
-              decoration: InputDecoration(
-                labelText: 'Age',
-                labelStyle: TextStyle(color: Colors.blueAccent),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: Colors.blueAccent),
-                ),
-                prefixIcon: Icon(Icons.calendar_today, color: Colors.blueAccent),
-              ),
-            ),
-            SizedBox(height: 20),
-
-            // Weight field
-            TextField(
-              controller: _weightController,
-              keyboardType: TextInputType.number,
-              decoration: InputDecoration(
-                labelText: 'Weight (kg)',
-                labelStyle: TextStyle(color: Colors.blueAccent),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: Colors.blueAccent),
-                ),
-                prefixIcon: Icon(Icons.monitor_weight, color: Colors.blueAccent),
-              ),
-            ),
-            SizedBox(height: 20),
-
-            // Height field
-            TextField(
-              controller: _heightController,
-              keyboardType: TextInputType.number,
-              decoration: InputDecoration(
-                labelText: 'Height (cm)',
-                labelStyle: TextStyle(color: Colors.blueAccent),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: Colors.blueAccent),
-                ),
-                prefixIcon: Icon(Icons.height, color: Colors.blueAccent),
-              ),
-            ),
-            SizedBox(height: 20),
-
-            // Gender dropdown
-            DropdownButtonFormField<String>(
-              value: _gender,
-              onChanged: (value) {
-                setState(() {
-                  _gender = value!;
-                });
-              },
-              items: ['Male', 'Female']
-                  .map((gender) => DropdownMenuItem(
-                value: gender,
-                child: Text(
-                  gender,
-                  style: TextStyle(color: Colors.blueAccent),
-                ),
-              ))
-                  .toList(),
-              decoration: InputDecoration(
-                labelText: 'Gender',
-                labelStyle: TextStyle(color: Colors.blueAccent),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: Colors.blueAccent),
-                ),
-                prefixIcon: Icon(Icons.transgender, color: Colors.blueAccent),
-              ),
-            ),
-            SizedBox(height: 30),
-
-            // Save Button
-            ElevatedButton(
-              onPressed: _saveProfile,
-              child: Text(
-                'Save Profile',
-                style: TextStyle(fontSize: 16),
-              ),
-              style: ElevatedButton.styleFrom(
-                padding: EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                backgroundColor: Colors.blueAccent,
-                foregroundColor: Colors.white,
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildTextField(TextEditingController controller, String label, IconData icon, [TextInputType keyboardType = TextInputType.text]) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: TextFormField(
+        controller: controller,
+        keyboardType: keyboardType,
+        decoration: InputDecoration(
+          labelText: label,
+          prefixIcon: Icon(icon),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderSide: BorderSide(color: Colors.green, width: 2),
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+        validator: (value) {
+          if (value == null || value.isEmpty) {
+            return 'Please enter your $label';
+          }
+          return null;
+        },
       ),
     );
   }

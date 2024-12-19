@@ -11,31 +11,20 @@ class _ActivityTrackingScreenState extends State<ActivityTrackingScreen> {
   final TextEditingController _durationController = TextEditingController();
   final TextEditingController _caloriesController = TextEditingController();
 
-  final List<Map<String, String>> _activities = [];
-
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   void _addActivity() async {
     if (_activityController.text.isNotEmpty &&
         _durationController.text.isNotEmpty &&
         _caloriesController.text.isNotEmpty) {
-      // إضافة النشاط إلى Firestore
       await _firestore.collection('activities').add({
         'activity': _activityController.text,
         'duration': _durationController.text,
         'calories': _caloriesController.text,
-        'timestamp': FieldValue.serverTimestamp(),  // الوقت الحالي
+        'timestamp': FieldValue.serverTimestamp(),
       });
 
-      // تحديث الواجهة بعد إضافة النشاط
       setState(() {
-        _activities.add({
-          'activity': _activityController.text,
-          'duration': _durationController.text,
-          'calories': _caloriesController.text,
-        });
-
-        // مسح البيانات بعد إضافة النشاط
         _activityController.clear();
         _durationController.clear();
         _caloriesController.clear();
@@ -70,10 +59,8 @@ class _ActivityTrackingScreenState extends State<ActivityTrackingScreen> {
             ),
             SizedBox(height: 20),
             _buildTextField(_activityController, 'Activity', Icons.fitness_center),
-            _buildTextField(
-                _durationController, 'Duration (minutes)', Icons.timer, TextInputType.number),
-            _buildTextField(_caloriesController, 'Calories Burned', Icons.local_fire_department,
-                TextInputType.number),
+            _buildTextField(_durationController, 'Duration (minutes)', Icons.timer, TextInputType.number),
+            _buildTextField(_caloriesController, 'Calories Burned', Icons.local_fire_department, TextInputType.number),
             SizedBox(height: 20),
             ElevatedButton(
               onPressed: _addActivity,

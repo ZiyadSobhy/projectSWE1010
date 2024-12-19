@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'user_profile_screen.dart';
 import 'user_activity_tracking_screen.dart';
 import 'progress_monitoring.dart';
 import 'goal_setting.dart';
-import 'workout_recommendations.dart'; // استيراد شاشة التوصيات
+import 'coach_plans_screen.dart'; // Add the new screen here
 
 class UserHomeScreen extends StatelessWidget {
   final String email;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   UserHomeScreen({required this.email});
 
@@ -29,7 +31,9 @@ class UserHomeScreen extends StatelessWidget {
               'Edit your profile and set your fitness goals.',
                   () => Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => ProfileScreen()),
+                MaterialPageRoute(
+                  builder: (context) => UserProfileScreen(),
+                ),
               ),
             ),
             _buildCard(
@@ -62,15 +66,15 @@ class UserHomeScreen extends StatelessWidget {
                 MaterialPageRoute(builder: (context) => GoalSetting()),
               ),
             ),
-            // البطاقة الجديدة الخاصة بالتوصيات
+            // New section for Coach's workout plans
             _buildCard(
               context,
-              Icons.fitness_center,
-              'Workout Recommendations',
-              'Get personalized workout recommendations.',
+              Icons.assignment_turned_in,
+              'Coach\'s Workout Plans',
+              'View and manage the workout plans created by your coach.',
                   () => Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => WorkoutRecommendations()),
+                MaterialPageRoute(builder: (context) => CoachPlansScreen()), // Navigate to CoachPlansScreen
               ),
             ),
           ],

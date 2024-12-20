@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class CoachAddScreen extends StatefulWidget {
   @override
@@ -7,49 +8,134 @@ class CoachAddScreen extends StatefulWidget {
 }
 
 class _CoachAddScreenState extends State<CoachAddScreen> {
-  final _coachNameController = TextEditingController();
-  final _coachEmailController = TextEditingController();
-  final _coachCodeController = TextEditingController();
-  final _coachUserNameController = TextEditingController();
+  final _codeController = TextEditingController();
+  final _nameController = TextEditingController();
+  final _userNameController = TextEditingController(); // لإدخال اسم المستخدم
+  List<String> _userNames = [];  // قائمة أسماء المستخدمين
+  List<String> _filteredUserNames = [];  // قائمة الأسماء المرشحة بناءً على الكتابة
+  bool _isLoading = false;  // لتحديد ما إذا كان يتم تحميل البيانات من Firebase
 
+  // دالة لتحميل أسماء المستخدمين من Firebase
+  Future<void> _loadUserNames(String query) async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .where('name', isGreaterThanOrEqualTo: query)  // فلترة الأسماء بناءً على الإدخال
+          .where('name', isLessThanOrEqualTo: query + '\uf8ff')  // إضافة نهاية محرف لتحديد النطاق
+          .get();
+
+      List<String> names = querySnapshot.docs
+          .map((doc) => doc['name'] as String)
+          .toList();
+
+      setState(() {
+        _filteredUserNames = names;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
+      print('Error loading user names: $e');
+    }
+  }
+
+  // دالة لإضافة المدرب
   Future<void> _addCoach() async {
-    String name = _coachNameController.text.trim();
-    String email = _coachEmailController.text.trim();
-    String code = _coachCodeController.text.trim();
-    String userName = _coachUserNameController.text.trim();
+    String code = _codeController.text.trim();
+    String name = _nameController.text.trim();
+    String userName = _userNameController.text.trim(); // الحصول على اسم المستخدم
 
-    if (name.isNotEmpty && email.isNotEmpty && code.isNotEmpty && userName.isNotEmpty) {
+    if (code.isNotEmpty && name.isNotEmpty && userName.isNotEmpty) {
       try {
-        // إضافة المدرب إلى Firestore
-        await FirebaseFirestore.instance.collection('coaches').add({
-          'name': name,
-          'email': email,
-          'code': code,
-          'userName': userName,
-          'createdAt': FieldValue.serverTimestamp(), // نضيف التاريخ بشكل تلقائي من Firestore
-        });
+        // البحث عن المستخدم في مجموعة users باستخدام الاسم
+        QuerySnapshot userSnapshot = await FirebaseFirestore.instance
+            .collection('users')
+            .where('name', isEqualTo: userName)  // البحث باستخدام اسم المستخدم
+            .get();
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Coach Added Successfully!'),
-            backgroundColor: Colors.green,
-          ),
-        );
-        // يمكن إضافة توجيه إلى شاشة أخرى إذا لزم الأمر
-        // Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => SomeOtherScreen()));
+        if (userSnapshot.docs.isNotEmpty) {
+          // إذا تم العثور على المستخدم
+          // إضافة المدرب إلى مجموعة coaches
+          await FirebaseFirestore.instance.collection('coaches').add({
+            'code': code,
+            'name': name,
+            'userName': userName,  // إضافة اسم المستخدم مع المدرب
+            'createdAt': Timestamp.now(),
+          });
+
+          // عرض رسالة نجاح
+          showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: Text('Success'),
+              content: Text('Coach added successfully!'),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    Navigator.pop(context);  // العودة إلى الشاشة السابقة
+                  },
+                  child: Text('OK'),
+                ),
+              ],
+            ),
+          );
+        } else {
+          // إذا لم يتم العثور على المستخدم باستخدام الاسم
+          showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: Text('Error'),
+              content: Text('User with name "$userName" not found'),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  child: Text('OK'),
+                ),
+              ],
+            ),
+          );
+        }
       } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to add coach. Please try again.'),
-            backgroundColor: Colors.red,
+        // عرض رسالة خطأ في حالة فشل العملية
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text('Error'),
+            content: Text('Failed to add coach: $e'),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                child: Text('OK'),
+              ),
+            ],
           ),
         );
       }
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Please fill all fields!'),
-          backgroundColor: Colors.red,
+      // إذا كانت الحقول فارغة
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text('Error'),
+          content: Text('Please fill in all fields'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: Text('OK'),
+            ),
+          ],
         ),
       );
     }
@@ -59,53 +145,84 @@ class _CoachAddScreenState extends State<CoachAddScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Add New Coach'),
+        title: Text('Add Coach'),
         backgroundColor: Colors.teal,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            SizedBox(height: 40),
+            Text(
+              'Add a New Coach',
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Colors.teal,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            SizedBox(height: 40),
+            // حقل كود المدرب
+            TextField(
+              controller: _codeController,
+              decoration: InputDecoration(
+                labelText: 'Coach Code',
+                prefixIcon: Icon(Icons.code),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+            ),
+            SizedBox(height: 20),
             // حقل اسم المدرب
             TextField(
-              controller: _coachNameController,
+              controller: _nameController,
               decoration: InputDecoration(
                 labelText: 'Coach Name',
                 prefixIcon: Icon(Icons.person),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
               ),
             ),
             SizedBox(height: 20),
-            // حقل البريد الإلكتروني
+            // حقل اسم المستخدم مع القائمة المنسدلة
             TextField(
-              controller: _coachEmailController,
+              controller: _userNameController,
+              onChanged: _loadUserNames,  // تحميل الأسماء عند الكتابة
               decoration: InputDecoration(
-                labelText: 'Coach Email',
-                prefixIcon: Icon(Icons.email),
+                labelText: 'User Name',
+                prefixIcon: Icon(Icons.person_outline),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
               ),
             ),
+            // إظهار القائمة المنسدلة عندما تتوفر الأسماء
+            _filteredUserNames.isNotEmpty
+                ? Column(
+              children: _filteredUserNames.map((userName) {
+                return ListTile(
+                  title: Text(userName),
+                  onTap: () {
+                    _userNameController.text = userName;
+                    setState(() {
+                      _filteredUserNames = [];  // إخفاء القائمة بعد الاختيار
+                    });
+                  },
+                );
+              }).toList(),
+            )
+                : _isLoading
+                ? CircularProgressIndicator()  // عرض التحميل
+                : Container(),
             SizedBox(height: 20),
-            // حقل الكود
-            TextField(
-              controller: _coachCodeController,
-              decoration: InputDecoration(
-                labelText: 'Coach Code',
-                prefixIcon: Icon(Icons.security),
-              ),
-            ),
-            SizedBox(height: 20),
-            // حقل اسم المستخدم
-            TextField(
-              controller: _coachUserNameController,
-              decoration: InputDecoration(
-                labelText: 'Coach Username',
-                prefixIcon: Icon(Icons.account_circle),
-              ),
-            ),
-            SizedBox(height: 30),
             // زر إضافة المدرب
             ElevatedButton(
               onPressed: _addCoach,
-              child: Text('Add Coach'),
+              child: Text('Add Coach', style: TextStyle(fontSize: 18)),
               style: ElevatedButton.styleFrom(
                 padding: EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(

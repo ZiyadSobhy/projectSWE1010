@@ -14,6 +14,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   final _heightController = TextEditingController();
   final _weightController = TextEditingController();
 
+  String? _gender = 'Male'; // تحديد الجنس بشكل افتراضي
+
   @override
   void dispose() {
     _nameController.dispose();
@@ -29,7 +31,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       await FirebaseFirestore.instance.collection('users').add({
         'name': _nameController.text,
         'age': _ageController.text,
-        'gender': _genderController.text,
+        'gender': _gender,
         'height': _heightController.text,
         'weight': _weightController.text,
       });
@@ -44,7 +46,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text('User Profile'),
-        backgroundColor: Colors.green,
+        backgroundColor: Colors.blue, // تغيير اللون للأزرق
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -54,17 +56,17 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
             children: [
               _buildTextField(_nameController, 'Name', Icons.person),
               _buildTextField(_ageController, 'Age', Icons.cake, TextInputType.number),
-              _buildTextField(_genderController, 'Gender', Icons.wc),
-              _buildTextField(_heightController, 'Height', Icons.height, TextInputType.number),
-              _buildTextField(_weightController, 'Weight', Icons.fitness_center, TextInputType.number),
+              _buildGenderField(), // حقل اختيار الجنس
+              _buildTextField(_heightController, 'Height (cm)', Icons.height, TextInputType.number),
+              _buildTextField(_weightController, 'Weight (kg)', Icons.fitness_center, TextInputType.number),
               SizedBox(height: 20),
               ElevatedButton(
                 onPressed: _saveUserProfile,
                 child: Text('Save Profile'),
                 style: ElevatedButton.styleFrom(
-
                   padding: EdgeInsets.symmetric(horizontal: 50, vertical: 15),
                   textStyle: TextStyle(fontSize: 18),
+                  backgroundColor: Colors.blue, // زر باللون الأزرق
                 ),
               ),
             ],
@@ -74,6 +76,46 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     );
   }
 
+  // حقل اختيار الجنس (Male / Female)
+  Widget _buildGenderField() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: DropdownButtonFormField<String>(
+        value: _gender,
+        onChanged: (String? newValue) {
+          setState(() {
+            _gender = newValue;
+          });
+        },
+        decoration: InputDecoration(
+          labelText: 'Gender',
+          prefixIcon: Icon(Icons.wc),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderSide: BorderSide(color: Colors.blue, width: 2),
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+        validator: (value) {
+          if (value == null) {
+            return 'Please select your gender';
+          }
+          return null;
+        },
+        items: <String>['Male', 'Female']
+            .map<DropdownMenuItem<String>>((String value) {
+          return DropdownMenuItem<String>(
+            value: value,
+            child: Text(value),
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  // حقل النصوص العام
   Widget _buildTextField(TextEditingController controller, String label, IconData icon, [TextInputType keyboardType = TextInputType.text]) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
@@ -87,7 +129,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
             borderRadius: BorderRadius.circular(12),
           ),
           focusedBorder: OutlineInputBorder(
-            borderSide: BorderSide(color: Colors.green, width: 2),
+            borderSide: BorderSide(color: Colors.blue, width: 2),
             borderRadius: BorderRadius.circular(12),
           ),
         ),

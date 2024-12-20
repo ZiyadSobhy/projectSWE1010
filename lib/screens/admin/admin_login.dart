@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'admin_dashboard.dart'; // تأكد من استيراد شاشة لوحة تحكم الإدمن
+import 'admin_home_screen.dart'; // تأكد من استيراد شاشة AdminHomeScreen
 import 'admin_register.dart'; // تأكد من استيراد شاشة التسجيل للإدمن
 import 'package:google_sign_in/google_sign_in.dart';
 
@@ -26,10 +26,10 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
           password: password,
         );
 
-        // في حالة نجاح تسجيل الدخول، التوجيه إلى لوحة تحكم الإدمن
+        // في حالة نجاح تسجيل الدخول، التوجيه إلى شاشة AdminHomeScreen
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => AdminDashboard()), // التوجيه إلى لوحة التحكم
+          MaterialPageRoute(builder: (context) => AdminHomeScreen()), // التوجيه إلى AdminHomeScreen
         );
       } on FirebaseAuthException catch (e) {
         String message = 'Login failed';
@@ -78,10 +78,10 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
 
       UserCredential userCredential = await FirebaseAuth.instance.signInWithCredential(credential);
 
-      // في حالة نجاح تسجيل الدخول، التوجيه إلى لوحة التحكم
+      // في حالة نجاح تسجيل الدخول، التوجيه إلى شاشة AdminHomeScreen
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => AdminDashboard()),
+        MaterialPageRoute(builder: (context) => AdminHomeScreen()), // التوجيه إلى AdminHomeScreen
       );
     } catch (e) {
       // عرض رسالة خطأ في حالة فشل تسجيل الدخول باستخدام Google

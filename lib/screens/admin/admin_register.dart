@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'admin_dashboard.dart'; // تأكد من استيراد شاشة لوحة تحكم الإدمن
+import 'admin_home_screen.dart'; // تأكد من استيراد شاشة AdminHomeScreen
 
 class AdminRegisterScreen extends StatefulWidget {
   @override
@@ -27,10 +27,10 @@ class _AdminRegisterScreenState extends State<AdminRegisterScreen> {
           password: password,
         );
 
-        // في حالة نجاح التسجيل، التوجيه إلى لوحة التحكم
+        // في حالة نجاح التسجيل، التوجيه إلى شاشة AdminHomeScreen
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => AdminDashboard()),
+          MaterialPageRoute(builder: (context) => AdminHomeScreen()), // التوجيه إلى AdminHomeScreen
         );
       } on FirebaseAuthException catch (e) {
         String message = 'Registration failed';

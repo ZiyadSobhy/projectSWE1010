@@ -3,9 +3,12 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 class CreateWorkoutPlansScreen extends StatelessWidget {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
   final TextEditingController _planNameController = TextEditingController();
   final TextEditingController _detailsController = TextEditingController();
-  final TextEditingController _userNameController = TextEditingController(); // إضافة حقل اسم المستخدم
+  final TextEditingController _userNameController = TextEditingController();
+  final TextEditingController _repsController = TextEditingController(); // عدد التكرارات
+  String _selectedCategory = "Push"; // الفئة الافتراضية للتمارين
 
   @override
   Widget build(BuildContext context) {
@@ -18,25 +21,40 @@ class CreateWorkoutPlansScreen extends StatelessWidget {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            // حقل إدخال اسم المستخدم
             TextField(
               controller: _userNameController,
-              decoration: InputDecoration(labelText: 'Enter User Name'), // حقل إدخال اسم المستخدم
+              decoration: InputDecoration(labelText: 'Enter User Name'),
             ),
-            // حقل إدخال اسم الخطة
             TextField(
               controller: _planNameController,
               decoration: InputDecoration(labelText: 'Plan Name'),
             ),
-            // حقل إدخال التفاصيل
             TextField(
               controller: _detailsController,
               decoration: InputDecoration(labelText: 'Details'),
             ),
+            TextField(
+              controller: _repsController,
+              decoration: InputDecoration(labelText: 'Repetitions'),
+              keyboardType: TextInputType.number,
+            ),
+            DropdownButton<String>(
+              value: _selectedCategory,
+              onChanged: (String? newValue) {
+                _selectedCategory = newValue!;
+              },
+              items: <String>['Push', 'Legs', 'Back', 'Abs']
+                  .map<DropdownMenuItem<String>>((String value) {
+                return DropdownMenuItem<String>(
+                  value: value,
+                  child: Text(value),
+                );
+              }).toList(),
+            ),
             SizedBox(height: 20),
             ElevatedButton(
               onPressed: () {
-                _createWorkoutPlan(context); // تم تمرير context هنا
+                _createWorkoutPlan(context);
               },
               child: Text('Create Plan'),
             ),
@@ -47,38 +65,45 @@ class CreateWorkoutPlansScreen extends StatelessWidget {
   }
 
   // Method to create a workout plan and send it to a specific user
-  void _createWorkoutPlan(BuildContext context) {
+  void _createWorkoutPlan(BuildContext context) async {
     final planName = _planNameController.text;
     final details = _detailsController.text;
-    final userName = _userNameController.text.trim(); // الحصول على اسم المستخدم المدخل
+    final userName = _userNameController.text.trim();
+    final reps = int.tryParse(_repsController.text) ?? 0;
 
-    // تحقق من أن جميع الحقول مليئة
-    if (planName.isNotEmpty && details.isNotEmpty && userName.isNotEmpty) {
-      // إضافة الخطة إلى Firestore تحت مستند المستخدم
-      _firestore
-          .collection('users') // مجموعة المستخدمين
-          .doc(userName) // مستند المستخدم باستخدام الاسم المدخل
-          .collection('workout_plans') // مجموعة خطط التمرين للمستخدم
-          .add({
-        'plan_name': planName,
-        'details': details,
-        'created_at': Timestamp.now(),
-      }).then((_) {
-        // مسح الحقول بعد إضافة الخطة
+    if (planName.isNotEmpty &&
+        details.isNotEmpty &&
+        userName.isNotEmpty &&
+        reps > 0) {
+      try {
+        // Add the workout plan to Firestore
+        await _firestore
+            .collection('users')
+            .doc(userName)
+            .collection('workout_plans')
+            .add({
+          'plan_name': planName,
+          'details': details,
+          'category': _selectedCategory,
+          'reps': reps,
+          'created_at': Timestamp.now(),
+        });
+
+        // Clear the fields after submission
         _planNameController.clear();
         _detailsController.clear();
-        _userNameController.clear(); // مسح حقل اسم المستخدم بعد الإرسال
+        _userNameController.clear();
+        _repsController.clear();
 
-        // إظهار رسالة نجاح
-        ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Workout plan sent to $userName successfully!')));
-      }).catchError((error) {
-        // التعامل مع الأخطاء
-        ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error: Could not add the plan. $error')));
-      });
+        // Show success message
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text('Workout plan for $userName has been created!')));
+      } catch (error) {
+        // Handle error
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text('Error: Could not create the plan. $error')));
+      }
     } else {
-      // إظهار رسالة خطأ إذا كانت الحقول فارغة
       ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Please fill out all fields')));
     }

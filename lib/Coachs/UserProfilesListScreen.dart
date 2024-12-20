@@ -29,14 +29,19 @@ class UserProfilesListScreen extends StatelessWidget {
 
               final name = userData['name'] ?? 'Unknown';
               final email = userData['email'] ?? 'No Email';
-              final activity = userData['activity'] ?? 'No Activity';
-              final calories = userData['calories'] ?? 'No Calories';
-              final duration = userData['duration'] ?? 'No Duration';
+
+              // Ensure that 'goals' field exists and contains the necessary fields
+              final goals = userData['goals'] ?? {}; // Assuming 'goals' contains the necessary fields
+
+              final calories = goals['calories'] ?? 'No Calories';
+              final duration = goals['duration'] ?? 'No Duration';
+              final steps = goals['steps'] ?? 'No Steps';
 
               return ListTile(
                 leading: Icon(Icons.account_circle, color: Colors.green),
                 title: Text(name),
-                subtitle: Text('Email: $email\nActivity: $activity\nCalories: $calories\nDuration: $duration'),
+                subtitle: Text(
+                    'Email: $email\nCalories: $calories\nDuration: $duration\nSteps: $steps'),
                 onTap: () async {
                   DocumentSnapshot userSnapshot = await FirebaseFirestore.instance.collection('users').doc(user.id).get();
                   if (userSnapshot.exists) {
@@ -53,10 +58,10 @@ class UserProfilesListScreen extends StatelessWidget {
                             Text('Gender: ${userDetails['gender'] ?? 'N/A'}'),
                             Text('Height: ${userDetails['height'] ?? 'N/A'}'),
                             Text('Weight: ${userDetails['weight'] ?? 'N/A'}'),
-                            Text('Activity: ${userDetails['activity'] ?? 'N/A'}'),
-                            Text('Calories: ${userDetails['calories'] ?? 'N/A'}'),
-                            Text('Duration: ${userDetails['duration'] ?? 'N/A'}'),
-                            Text('Steps: ${userDetails['steps'] ?? 'N/A'}'),
+                            // Directly show the values from 'goals'
+                            Text('Calories Goal: ${goals['calories'] ?? 'N/A'}'),
+                            Text('Duration Goal: ${goals['duration'] ?? 'N/A'}'),
+                            Text('Steps Goal: ${goals['steps'] ?? 'N/A'}'),
                           ],
                         ),
                         actions: [

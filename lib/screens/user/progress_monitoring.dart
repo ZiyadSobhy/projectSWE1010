@@ -8,32 +8,34 @@ class ProgressMonitoring extends StatefulWidget {
 }
 
 class _ProgressMonitoringState extends State<ProgressMonitoring> {
-  double _progress = 0.5;  // قيمة التقدم (من 0 إلى 1)
-  String _progressText = "50% Completed";
-  String _workoutType = "Running";  // نوع التمرين (يمكن تغييره حسب المدخلات)
+  double _progress = 0.0; // Initial progress value
+  String _workoutType = "Running"; // Default workout type
 
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  // دالة لتحديث التقدم بناءً على التمرين
+  // Function to update progress based on the workout
   void _updateProgress() async {
     User? user = _auth.currentUser;
 
     if (user != null) {
-      // إضافة التقدم إلى Firestore
-      await _firestore.collection('progress_reports').add({
+      // Add progress to Firestore in /completed_workout_plans
+      await _firestore.collection('completed_workout_plans').add({
         'userId': user.uid,
-        'workoutType': _workoutType,  // إضافة نوع التمرين
+        'workoutType': _workoutType,
         'progress': _progress,
-        'progressText': _progressText,
         'timestamp': FieldValue.serverTimestamp(),
       });
 
-      // تحديث التقدم في الواجهة
+      // Update progress in the UI
       setState(() {
         _progress = (_progress + 0.1) % 1.1;
-        _progressText = "${(_progress * 100).toInt()}% Completed";
       });
+
+      // Show confirmation message that progress has been saved
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Your progress has been saved!')),
+      );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('No user logged in!')),
@@ -41,79 +43,60 @@ class _ProgressMonitoringState extends State<ProgressMonitoring> {
     }
   }
 
-  // دالة لعرض التقدمات المحفوظة من Firestore
-  Stream<List<Map<String, dynamic>>> _getProgressReports() {
+  // Function to display workout plans from Firestore
+  Stream<List<Map<String, dynamic>>> _getWorkoutPlans() {
     return _firestore
-        .collection('progress_reports')
-        .where('workoutType', isEqualTo: _workoutType) // فلترة التقدمات بناءً على نوع التمرين
-        .orderBy('timestamp', descending: true)
+        .collection('users')
+        .doc('sobhy') // User 'sobhy'
+        .collection('workout_plans') // Workout plans collection for the user
         .snapshots()
         .map((snapshot) => snapshot.docs
-        .map((doc) => doc.data() as Map<String, dynamic>)
+        .map((doc) => {
+      ...doc.data() as Map<String, dynamic>,
+      'id': doc.id, // Add document ID to the data
+    })
         .toList());
+  }
+
+  // Function to update task completion status in Firestore in /completed_workout_plans
+  Future<void> _updateTaskCompletion(String planId, bool isCompleted) async {
+    User? user = _auth.currentUser;
+
+    if (user != null) {
+      // Update task completion status in Firestore
+      await _firestore.collection('users').doc('sobhy').collection('workout_plans').doc(planId).update({
+        'isCompleted': isCompleted,
+      });
+
+      // Show confirmation message that the task has been saved
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Task has been saved!')),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('No user logged in!')),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Progress Monitoring - $_workoutType'),
+        title: Text('Workout Plans'),
         backgroundColor: Colors.blueAccent,
         centerTitle: true,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Track Your $_workoutType Progress',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: Colors.blueAccent,
-              ),
-            ),
-            SizedBox(height: 20),
-            LinearProgressIndicator(
-              value: _progress,
-              backgroundColor: Colors.grey[300],
-              valueColor: AlwaysStoppedAnimation<Color>(Colors.blueAccent),
-              minHeight: 10,
-            ),
-            SizedBox(height: 20),
-            Text(
-              _progressText,
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w600,
-                color: Colors.blueAccent,
-              ),
-            ),
-            SizedBox(height: 40),
-            // تغيير التمرين بناءً على اختيار المستخدم (اختياري)
-            DropdownButton<String>(
-              value: _workoutType,
-              items: ['Running', 'Cycling', 'Swimming']
-                  .map((workout) => DropdownMenuItem<String>(
-                value: workout,
-                child: Text(workout),
-              ))
-                  .toList(),
-              onChanged: (value) {
-                setState(() {
-                  _workoutType = value!;
-                  _progress = 0.0;  // إعادة التعيين عند تغيير التمرين
-                  _progressText = "0% Completed";
-                });
-              },
-            ),
-            SizedBox(height: 40),
-            // عرض التقرير من Firestore
+            // Display workout plans from Firestore
             Expanded(
               child: StreamBuilder<List<Map<String, dynamic>>>(
-                stream: _getProgressReports(),
+                stream: _getWorkoutPlans(),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return Center(child: CircularProgressIndicator());
@@ -123,15 +106,19 @@ class _ProgressMonitoringState extends State<ProgressMonitoring> {
                     return Center(child: Text('Something went wrong!'));
                   }
 
-                  var progressReports = snapshot.data ?? [];
+                  var workoutPlans = snapshot.data ?? [];
 
                   return ListView.builder(
-                    itemCount: progressReports.length,
+                    itemCount: workoutPlans.length,
                     itemBuilder: (context, index) {
-                      var progress = progressReports[index];
-                      var timestamp = (progress['timestamp'] as Timestamp)
-                          .toDate()
-                          .toString();
+                      var plan = workoutPlans[index];
+
+                      // Ensure fields are not null
+                      String planName = plan['plan_name'] ?? 'No plan name'; // Default value
+                      String details = plan['details'] ?? 'No details available'; // Default value
+                      bool isCompleted = plan['isCompleted'] ?? false;
+                      String planId = plan['id'] ?? ''; // Ensure the id exists
+
                       return Card(
                         margin: EdgeInsets.symmetric(vertical: 8),
                         elevation: 4,
@@ -141,14 +128,33 @@ class _ProgressMonitoringState extends State<ProgressMonitoring> {
                         child: ListTile(
                           contentPadding: EdgeInsets.all(16),
                           title: Text(
-                            '${(progress['progress'] * 100).toInt()}% Completed',
+                            planName,
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 16,
                               color: Colors.blueAccent,
                             ),
                           ),
-                          subtitle: Text('Updated at: $timestamp'),
+                          subtitle: Text(details),
+                          trailing: GestureDetector(
+                            onTap: () {
+                              // Toggle the completion status
+                              setState(() {
+                                isCompleted = !isCompleted;
+                              });
+                              _updateTaskCompletion(planId, isCompleted);
+                            },
+                            child: Icon(
+                              isCompleted ? Icons.check_circle : Icons.cancel,
+                              color: isCompleted ? Colors.green : Colors.red,
+                              size: 30,
+                            ),
+                          ),
+                          onTap: () {
+                            setState(() {
+                              _workoutType = planName; // Update workout type on tap
+                            });
+                          },
                         ),
                       );
                     },
